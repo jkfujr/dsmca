@@ -1,0 +1,17 @@
+certificates: {}
+synology:
+  create_cert: false
+  device_name: CertRenewal
+  hostname: 100.111.0.111
+  password: Qq159357123.
+  port: 5001
+  scheme: https
+  username: jkfujr
+  device_id: null
+  certificate_desc: null
+  disable_cert_verify: true
+webhook:
+  enabled: true
+  path: /webhook
+  port: 18102
+  auth_token: null

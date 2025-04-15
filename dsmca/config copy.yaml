@@ -1,0 +1,29 @@
+synology:
+  # DSM连接信息
+  scheme: https
+  hostname: HOST
+  port: 5001
+  # 是否禁用SSL证书验证
+  disable_cert_verify: false
+
+  # 认证信息
+  username: USER
+  password: PASS
+  
+  # 可选: 设备ID (用于2FA-OTP认证)
+  device_id: null
+  device_name: CertRenewal
+  
+  # 证书配置
+  certificate_desc: null  # 为空则使用域名作为描述
+  create_cert: false      # 是否允许创建不存在的证书
+
+# Webhook 配置
+webhook:
+  enabled: true           # 是否启用Webhook
+  port: 18102              # Webhook监听端口
+  path: /webhook          # Webhook路径
+  auth_token: null        # 认证令牌 (为空则不验证)
+
+# 证书记录
+certificates: {} 
