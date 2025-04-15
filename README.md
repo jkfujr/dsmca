@@ -72,6 +72,9 @@ webhook接收, 请求体格式:
 }
 ```
 
+## 参考
+> https://github.com/acmesh-official/acme.sh/blob/master/deploy/synology_dsm.sh
+
 ## 许可证
 
 MIT 

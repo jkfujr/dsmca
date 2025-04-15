@@ -3,6 +3,7 @@ from typing import Dict, List, Optional
 from urllib.parse import quote
 
 from models import SynologyConfig, CertificateInfo
+from utils import clean_filename
 
 logger = logging.getLogger("dsmca.synology")
 
@@ -212,9 +213,11 @@ class SynologyClient:
     def find_certificate(self, desc: str) -> Optional[Dict]:
         """根据描述查找证书"""
         certs = self.get_certificates()
+        safe_desc = clean_filename(desc)
         
         for cert in certs:
-            if cert.get("desc") == desc:
+            cert_desc = cert.get("desc", "")
+            if cert_desc == desc or cert_desc == safe_desc:
                 return cert
         
         return None
@@ -238,6 +241,9 @@ class SynologyClient:
                 cert_desc = cert_info.domain
                 cert = self.find_certificate(cert_desc)
             
+            original_desc = cert_desc
+            safe_cert_desc = clean_filename(cert_desc)
+            
             url = f"{self.base_url}/webapi/entry.cgi"
             cert_id = cert.get("id", "") if cert else ""
             is_default = cert.get("is_default", False) if cert else False
@@ -245,12 +251,12 @@ class SynologyClient:
                 'key': (f"{cert_info.domain}.key", cert_info.private_key, 'application/octet-stream'),
                 'cert': (f"{cert_info.domain}.crt", cert_info.certificate, 'application/octet-stream'),
                 'id': (None, cert_id),
-                'desc': (None, cert_desc),
+                'desc': (None, safe_cert_desc),
             }
             
             if is_default:
                 files['as_default'] = (None, 'true')
-            logger.info(f"正在上传证书 '{cert_desc}'...")
+            logger.info(f"正在上传证书 '{original_desc}'...")
             params = {
                 'api': 'SYNO.Core.Certificate',
                 'method': 'import',
@@ -266,7 +272,7 @@ class SynologyClient:
                 logger.error(f"上传证书失败: {response_data}")
                 return False
             
-            logger.info(f"证书 '{cert_desc}' 上传成功")
+            logger.info(f"证书 '{original_desc}' 上传成功")
             return True
             
         except Exception as e:

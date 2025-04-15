@@ -50,12 +50,21 @@ def generate_auth_token() -> str:
     return secrets.token_urlsafe(32)
 
 
+def clean_filename(filename: str) -> str:
+    """清理文件名，替换Windows不支持的特殊字符"""
+    invalid_chars = '<>:"/\\|?*'
+    for char in invalid_chars:
+        filename = filename.replace(char, '_')
+    return filename
+
+
 def save_certificate_files(cert_info: CertificateInfo, cert_dir: str = "certs") -> Dict[str, str]:
     """保存证书文件到本地"""
     os.makedirs(cert_dir, exist_ok=True)
     
     domain = cert_info.domain
-    domain_dir = os.path.join(cert_dir, domain)
+    safe_domain = clean_filename(domain)
+    domain_dir = os.path.join(cert_dir, safe_domain)
     os.makedirs(domain_dir, exist_ok=True)
     
     cert_path = os.path.join(domain_dir, "cert.pem")
@@ -80,7 +89,8 @@ def save_certificate_files(cert_info: CertificateInfo, cert_dir: str = "certs") 
 
 def load_certificate_from_files(domain: str, cert_dir: str = "certs") -> Optional[CertificateInfo]:
     """从本地文件加载证书信息"""
-    domain_dir = os.path.join(cert_dir, domain)
+    safe_domain = clean_filename(domain)
+    domain_dir = os.path.join(cert_dir, safe_domain)
     
     if not os.path.exists(domain_dir):
         return None

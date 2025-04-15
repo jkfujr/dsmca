@@ -4,7 +4,7 @@ from typing import Dict, List, Optional
 
 from models import CertificateInfo
 from synology import SynologyClient
-from utils import load_config, save_config, save_certificate_files, load_certificate_from_files
+from utils import load_config, save_config, save_certificate_files, load_certificate_from_files, clean_filename
 
 logger = logging.getLogger("dsmca.cert_manager")
 
@@ -84,9 +84,9 @@ class CertificateManager:
                 if os.path.isdir(domain_dir) and item not in certs:
                     cert_info = load_certificate_from_files(item, self.cert_dir)
                     if cert_info:
-                        certs[item] = cert_info
-                        self.config.certificates[item] = cert_info
-            save_config(self.config, self.config_path)
+                        certs[cert_info.domain] = cert_info
+                        self.config.certificates[cert_info.domain] = cert_info
+                save_config(self.config, self.config_path)
         
         return certs
     
@@ -96,7 +96,8 @@ class CertificateManager:
             if domain in self.config.certificates:
                 del self.config.certificates[domain]
                 save_config(self.config, self.config_path)
-            domain_dir = os.path.join(self.cert_dir, domain)
+            safe_domain = clean_filename(domain)
+            domain_dir = os.path.join(self.cert_dir, safe_domain)
             if os.path.exists(domain_dir):
                 shutil.rmtree(domain_dir)
             
@@ -137,6 +138,10 @@ def process_webhook_payload(payload: Dict, cert_manager: CertificateManager) -> 
         domains = [d.strip() for d in domain.split(",")]
         primary_domain = domains[0]
         logger.info(f"更新域名证书: {primary_domain}")
+        safe_domain = clean_filename(primary_domain)
+        if safe_domain != primary_domain:
+            logger.info(f"域名包含特殊字符，已清理为: {safe_domain}")
+        
         result = cert_manager.update_certificate(
             domain=primary_domain,
             certificate=cert,
