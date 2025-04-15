@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 
 certs/
+config.yaml
